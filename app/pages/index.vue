@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Timer, Plus } from 'lucide-vue-next'
+import { Timer, Plus, FileText } from 'lucide-vue-next'
 import { useProjectsStore } from '~/stores/projects'
 import ProjectRow from '~/components/ProjectRow.vue'
 import CreateProjectForm from '~/components/CreateProjectForm.vue'
+
+const router = useRouter()
 
 const store = useProjectsStore()
 const showForm = ref(false)
@@ -26,6 +28,11 @@ function isProjectRunning(projectId: string): boolean {
 
 const sortedProjects = computed(() =>
   [...store.projects].sort((a, b) => {
+    // Non-active projects sink to the bottom
+    const aActive = a.status === 'active' ? 1 : 0
+    const bActive = b.status === 'active' ? 1 : 0
+    if (aActive !== bActive) return bActive - aActive
+    // Among active projects, running ones float to top
     const aRunning = isProjectRunning(a.id) ? 1 : 0
     const bRunning = isProjectRunning(b.id) ? 1 : 0
     return bRunning - aRunning
@@ -46,6 +53,13 @@ const sortedProjects = computed(() =>
           <span v-if="totalRunning > 0" class="text-xs text-emerald-400 font-medium">
             {{ totalRunning }} running
           </span>
+          <button
+            @click="router.push('/report')"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm hover:bg-white/5 transition text-muted-foreground hover:text-foreground"
+          >
+            <FileText class="w-4 h-4" />
+            Report
+          </button>
           <button
             @click="showForm = !showForm"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm hover:opacity-90 transition"
