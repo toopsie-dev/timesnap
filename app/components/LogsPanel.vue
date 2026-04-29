@@ -66,7 +66,7 @@ function formatDuration(ms: number): string {
           <tr
             v-for="log in logs"
             :key="log.id"
-            class="border-b border-border/20 hover:bg-white/[0.02] transition-colors"
+            class="border-b border-border/20 hover:bg-white/2 transition-colors"
           >
             <td class="px-4 py-2 text-muted-foreground whitespace-nowrap">{{ formatDate(log.startedAt) }}</td>
             <td class="px-4 py-2">
