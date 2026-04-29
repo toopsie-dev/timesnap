@@ -36,11 +36,11 @@ function removeMilestone(i: number) {
 }
 
 function addSubFeature(mi: number) {
-  milestoneList.value[mi].subFeatures.push({ name: '', estimatedHours: '' })
+  milestoneList.value[mi]!.subFeatures.push({ name: '', estimatedHours: '' })
 }
 
 function removeSubFeature(mi: number, si: number) {
-  milestoneList.value[mi].subFeatures.splice(si, 1)
+  milestoneList.value[mi]!.subFeatures.splice(si, 1)
 }
 
 const canSubmit = computed(() =>
@@ -116,7 +116,7 @@ async function submit() {
         class="rounded-md border border-border/60 bg-background/40 overflow-hidden"
       >
         <!-- Milestone header -->
-        <div class="flex items-center gap-2 px-3 py-2 bg-white/[0.03]">
+        <div class="flex items-center gap-2 px-3 py-2 bg-white/3">
           <button
             type="button"
             @click="m.collapsed = !m.collapsed"
@@ -149,7 +149,7 @@ async function submit() {
             :key="si"
             class="flex items-center gap-2 group"
           >
-            <span class="text-muted-foreground/40 text-xs w-4 text-right flex-shrink-0">{{ si + 1 }}</span>
+            <span class="text-muted-foreground/40 text-xs w-4 text-right shrink-0">{{ si + 1 }}</span>
             <input
               v-model="sf.name"
               :placeholder="`Sub-feature name *`"
