@@ -175,7 +175,7 @@ watch(filterMilestone, () => { filterTask.value = '' })
               <tr
                 v-for="log in pagedLogs"
                 :key="log.id"
-                class="border-b border-border/20 last:border-0 hover:bg-white/[0.02] transition-colors"
+                class="border-b border-border/20 last:border-0 hover:bg-white/2 transition-colors"
               >
                 <td class="px-4 py-2.5 text-xs text-muted-foreground whitespace-nowrap">{{ formatDate(log.startedAt) }}</td>
                 <td class="px-4 py-2.5">

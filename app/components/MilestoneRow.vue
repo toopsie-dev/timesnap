@@ -79,22 +79,22 @@ const runningCount = computed(() =>
     >
       <div class="flex items-center gap-2 min-w-0">
         <ChevronRight
-          class="w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200"
+          class="w-3.5 h-3.5 shrink-0 transition-transform duration-200"
           :class="[isIdle ? 'text-amber-500/60' : 'text-muted-foreground', { 'rotate-90': isActive }]"
         />
         <!-- Coffee icon for Idle milestone -->
-        <Coffee v-if="isIdle" class="w-3.5 h-3.5 text-amber-500/70 flex-shrink-0" />
+        <Coffee v-if="isIdle" class="w-3.5 h-3.5 text-amber-500/70 shrink-0" />
         <span
           :class="['text-sm font-medium truncate', isIdle ? 'text-amber-400/80' : '']"
         >{{ milestone.name }}</span>
-        <span v-if="estimatedLabel" class="text-xs text-muted-foreground flex-shrink-0">
+        <span v-if="estimatedLabel" class="text-xs text-muted-foreground shrink-0">
           {{ estimatedLabel }}
         </span>
-        <span v-if="runningCount > 0" class="text-xs text-emerald-400 flex-shrink-0">
+        <span v-if="runningCount > 0" class="text-xs text-emerald-400 shrink-0">
           {{ runningCount }} running
         </span>
       </div>
-      <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+      <div class="flex items-center gap-2 shrink-0 ml-4">
         <span
           :class="['font-mono text-sm tabular-nums',
             runningCount > 0 ? 'text-emerald-400' : isIdle ? 'text-amber-400/70' : 'text-muted-foreground'

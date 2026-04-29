@@ -30,19 +30,19 @@ const estimatedLabel = computed(() => {
     <div class="flex items-center justify-between py-2 px-3 rounded-md hover:bg-white/5 group transition-colors">
       <!-- Left: dot + name + estimate -->
       <div class="flex items-center gap-2 min-w-0">
-        <span :class="['w-1.5 h-1.5 rounded-full flex-shrink-0', {
+        <span :class="['w-1.5 h-1.5 rounded-full shrink-0', {
           'bg-emerald-400 animate-pulse': subFeature.status === 'running',
           'bg-amber-400': subFeature.status === 'paused',
           'bg-muted-foreground/40': subFeature.status === 'idle',
         }]" />
         <span class="text-sm truncate">{{ subFeature.name }}</span>
-        <span v-if="estimatedLabel" class="text-xs text-muted-foreground flex-shrink-0">
+        <span v-if="estimatedLabel" class="text-xs text-muted-foreground shrink-0">
           {{ estimatedLabel }}
         </span>
       </div>
 
       <!-- Right: controls + timer -->
-      <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+      <div class="flex items-center gap-2 shrink-0 ml-4">
         <!-- Start -->
         <button
           v-if="subFeature.status !== 'running'"
