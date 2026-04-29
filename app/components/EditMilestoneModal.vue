@@ -97,7 +97,7 @@ async function save() {
             :key="sf.id"
             class="flex items-center gap-2"
           >
-            <span class="text-xs text-muted-foreground/40 w-4 text-right flex-shrink-0">{{ i + 1 }}</span>
+            <span class="text-xs text-muted-foreground/40 w-4 text-right shrink-0">{{ i + 1 }}</span>
             <input
               v-model="sf.name"
               placeholder="Sub-feature name *"
