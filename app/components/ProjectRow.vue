@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronRight, Trash2, History } from 'lucide-vue-next'
+import { ChevronRight, Trash2, History, CheckCircle, XCircle, RotateCcw } from 'lucide-vue-next'
 import type { Project } from '~/stores/projects'
 import { useProjectsStore } from '~/stores/projects'
 
@@ -10,6 +10,20 @@ const store = useProjectsStore()
 
 const loaded = ref(false)
 const confirmOpen = ref(false)
+const statusMenuOpen = ref(false)
+const statusBtnRef = ref<HTMLElement | null>(null)
+const menuStyle = ref<{ top: string; left: string }>(({ top: '0px', left: '0px' }))
+
+function openStatusMenu() {
+  if (statusBtnRef.value) {
+    const rect = statusBtnRef.value.getBoundingClientRect()
+    menuStyle.value = {
+      top: `${rect.bottom + window.scrollY + 4}px`,
+      left: `${rect.right + window.scrollX - 144}px`,
+    }
+  }
+  statusMenuOpen.value = !statusMenuOpen.value
+}
 const activeMilestoneId = ref<string | null>(null)
 
 const router = useRouter()
@@ -70,10 +84,28 @@ function formatCountdown(ms: number): string {
   const s = totalSec % 60
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
+
+async function setStatus(status: 'active' | 'completed' | 'cancelled') {
+  statusMenuOpen.value = false
+  await store.updateProjectStatus(props.project.id, status)
+}
+
+onMounted(() => {
+  document.addEventListener('click', () => { statusMenuOpen.value = false })
+})
+onUnmounted(() => {
+  document.removeEventListener('click', () => { statusMenuOpen.value = false })
+})
+
+const statusConfig = {
+  active:    { label: 'Active',    classes: 'text-emerald-400 bg-emerald-500/10' },
+  completed: { label: 'Completed', classes: 'text-sky-400 bg-sky-500/10' },
+  cancelled: { label: 'Cancelled', classes: 'text-muted-foreground bg-white/5 line-through' },
+}
 </script>
 
 <template>
-  <div class="rounded-lg border border-border bg-card overflow-hidden">
+  <div :class="['rounded-lg border bg-card overflow-hidden', project.status === 'cancelled' ? 'border-border/40 opacity-60' : project.status === 'completed' ? 'border-sky-900/50' : 'border-border']">
     <!-- Project header row -->
     <div
       @click="toggle"
@@ -82,24 +114,67 @@ function formatCountdown(ms: number): string {
       <!-- Left: chevron + title + badges -->
       <div class="flex items-center gap-3 min-w-0">
         <ChevronRight
-          class="w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-200"
+          class="w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200"
           :class="{ 'rotate-90': isActive }"
         />
-        <span class="font-semibold truncate">{{ project.name }}</span>
+        <span class="font-semibold truncate" :class="project.status === 'cancelled' ? 'line-through text-muted-foreground' : ''">{{ project.name }}</span>
+        <!-- Status badge -->
+        <span
+          v-if="project.status !== 'active'"
+          :class="['text-xs px-2 py-0.5 rounded-full shrink-0', project.status === 'completed' ? 'text-sky-400 bg-sky-500/10' : 'text-muted-foreground bg-white/5']"
+        >{{ project.status === 'completed' ? 'Completed' : 'Cancelled' }}</span>
         <span
           v-if="remainingMs !== null"
-          :class="['text-sm font-mono tabular-nums flex-shrink-0', isOverBudget ? 'text-red-400' : 'text-muted-foreground/60']"
+          :class="['text-sm font-mono tabular-nums shrink-0', isOverBudget ? 'text-red-400' : 'text-muted-foreground/60']"
         >({{ formatCountdown(remainingMs) }})</span>
         <span
           v-if="runningCount > 0"
-          class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full flex-shrink-0"
+          class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full shrink-0"
         >
           {{ runningCount }} running
         </span>
       </div>
 
       <!-- Right: action buttons + total time -->
-      <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+      <div class="flex items-center gap-3 shrink-0 ml-4">
+        <!-- Status menu -->
+        <div class="relative" @click.stop>
+          <button
+            ref="statusBtnRef"
+            @click="openStatusMenu"
+            class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-muted-foreground transition"
+            title="Set status"
+          >
+            <CheckCircle class="w-4 h-4" />
+          </button>
+        </div>
+        <Teleport to="body">
+          <div
+            v-if="statusMenuOpen"
+            class="fixed z-50 rounded-lg border border-border bg-card shadow-2xl min-w-36 py-1"
+            :style="menuStyle"
+            @click.stop
+          >
+            <button
+              @click="setStatus('active')"
+              :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'active' ? 'text-emerald-400' : 'text-foreground']"
+            >
+              <RotateCcw class="w-3.5 h-3.5" /> Active
+            </button>
+            <button
+              @click="setStatus('completed')"
+              :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'completed' ? 'text-sky-400' : 'text-foreground']"
+            >
+              <CheckCircle class="w-3.5 h-3.5" /> Completed
+            </button>
+            <button
+              @click="setStatus('cancelled')"
+              :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'cancelled' ? 'text-muted-foreground' : 'text-foreground']"
+            >
+              <XCircle class="w-3.5 h-3.5" /> Cancelled
+            </button>
+          </div>
+        </Teleport>
         <button
           @click.stop="router.push(`/projects/${project.id}/logs`)"
           class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-muted-foreground transition"
