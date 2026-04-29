@@ -64,6 +64,8 @@ export function getDb() {
   try { _db.exec(`ALTER TABLE sub_features ADD COLUMN notes TEXT NOT NULL DEFAULT ''`) } catch {}
   // Safe migration: add estimated_hours to projects
   try { _db.exec(`ALTER TABLE projects ADD COLUMN estimated_hours REAL`) } catch {}
+  // Safe migration: add status to projects
+  try { _db.exec(`ALTER TABLE projects ADD COLUMN status TEXT NOT NULL DEFAULT 'active'`) } catch {}
 
   return _db
 }
@@ -73,6 +75,7 @@ export function rowToProject(row: Record<string, unknown>) {
     id: row.id as string,
     name: row.name as string,
     description: row.description as string,
+    status: (row.status as string) ?? 'active',
     totalMs: (row.total_ms as number) ?? 0,
     estimatedHours: (row.estimated_hours as number | null) ?? null,
     createdAt: row.created_at as number,
