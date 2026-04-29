@@ -4,6 +4,7 @@ export interface Project {
   id: string
   name: string
   description: string
+  status: 'active' | 'completed' | 'cancelled'
   totalMs: number
   estimatedHours: number | null
   createdAt: number
@@ -91,6 +92,13 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function updateProject(id: string, data: { name: string; description: string }) {
     const p = await $fetch<Project>(`/api/projects/${id}`, { method: 'PATCH', body: data })
+    const idx = projects.value.findIndex(proj => proj.id === id)
+    if (idx >= 0) Object.assign(projects.value[idx], p)
+    return p
+  }
+
+  async function updateProjectStatus(id: string, status: 'active' | 'completed' | 'cancelled') {
+    const p = await $fetch<Project>(`/api/projects/${id}/status`, { method: 'PATCH', body: { status } })
     const idx = projects.value.findIndex(proj => proj.id === id)
     if (idx >= 0) Object.assign(projects.value[idx], p)
     return p
@@ -252,6 +260,7 @@ export const useProjectsStore = defineStore('projects', () => {
     fetchProjects,
     createProject,
     updateProject,
+    updateProjectStatus,
     deleteProject,
     fetchMilestones,
     updateMilestone,
