@@ -113,29 +113,54 @@ function utilizationColor(pct: number): string {
 
 <template>
   <div class="min-h-screen bg-background text-foreground">
-    <header class="border-b border-border/50 px-6 py-4 flex items-center gap-4 print:hidden">
-      <button @click="selectedProject ? clearSelection() : router.back()" class="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-sm">
-        <ArrowLeft class="w-4 h-4" />
-        {{ selectedProject ? 'Back to Project List' : 'Back' }}
-      </button>
-      <div class="flex-1">
-        <p class="text-xs text-muted-foreground">{{ selectedProject ? formatDate(Date.now()) : 'Select a project to generate a report' }}</p>
-        <h1 class="font-semibold">{{ selectedProject ? selectedProject.name : 'Project Report' }}</h1>
+
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
+    <header class="border-b border-border/50 sticky top-0 z-10 bg-background/80 backdrop-blur print:hidden">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+        <!-- Back -->
+        <button
+          @click="selectedProject ? clearSelection() : router.back()"
+          class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition text-sm shrink-0"
+        >
+          <ArrowLeft class="w-4 h-4" />
+          <span class="hidden sm:inline">{{ selectedProject ? 'Back to Project List' : 'Back' }}</span>
+        </button>
+
+        <!-- Title block -->
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-muted-foreground leading-none mb-0.5">
+            {{ selectedProject ? formatDate(Date.now()) : 'Select a project' }}
+          </p>
+          <h1 class="font-semibold text-sm sm:text-base leading-snug truncate">
+            {{ selectedProject ? selectedProject.name : 'Project Report' }}
+          </h1>
+        </div>
+
+        <!-- Print -->
+        <button
+          v-if="selectedProject"
+          @click="printReport()"
+          class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md border border-border text-sm hover:bg-white/5 transition shrink-0"
+        >
+          <Printer class="w-4 h-4 shrink-0" />
+          <span class="hidden sm:inline">Print / Export PDF</span>
+        </button>
       </div>
-      <button v-if="selectedProject" @click="printReport()" class="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border text-sm hover:bg-white/5 transition">
-        <Printer class="w-4 h-4" />
-        Print / Export PDF
-      </button>
     </header>
 
+    <!-- Print-only title block -->
     <div v-if="selectedProject" class="hidden print:block px-8 pt-8 pb-4">
       <h1 class="text-2xl font-bold">{{ selectedProject.name }}</h1>
       <p class="text-sm text-muted-foreground mt-1">Report generated {{ formatDate(Date.now()) }}</p>
     </div>
 
-    <main class="max-w-5xl mx-auto px-4 py-8 print:px-8 print:py-4">
+    <main class="max-w-5xl mx-auto px-4 py-6 sm:py-8 print:px-8 print:py-4">
+
+      <!-- ── Project list ──────────────────────────────────────────────── -->
       <template v-if="!selectedProject">
-        <div v-if="loadingList" class="text-center py-16 text-muted-foreground text-sm animate-pulse">Loading completed projects...</div>
+        <div v-if="loadingList" class="text-center py-16 text-muted-foreground text-sm animate-pulse">
+          Loading completed projects…
+        </div>
         <div v-else-if="completedProjects.length === 0" class="text-center py-16">
           <FileText class="w-10 h-10 mx-auto mb-3 opacity-20" />
           <p class="text-muted-foreground text-sm">No completed projects found.</p>
@@ -143,61 +168,82 @@ function utilizationColor(pct: number): string {
         </div>
         <div v-else class="space-y-3">
           <p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-4">Completed Projects</p>
-          <button v-for="p in completedProjects" :key="p.id" @click="selectProject(p.id)" class="w-full flex items-center justify-between px-5 py-4 rounded-lg border border-border bg-card hover:bg-white/5 hover:border-sky-900/60 transition text-left group">
-            <div class="min-w-0">
-              <p class="font-semibold truncate group-hover:text-sky-400 transition">{{ p.name }}</p>
-              <p v-if="p.description" class="text-xs text-muted-foreground mt-0.5 truncate">{{ p.description }}</p>
-              <p class="text-xs text-muted-foreground mt-1">Completed {{ formatDate(p.updatedAt) }}</p>
+          <button
+            v-for="p in completedProjects"
+            :key="p.id"
+            @click="selectProject(p.id)"
+            class="w-full rounded-lg border border-border bg-card hover:bg-white/5 hover:border-sky-900/60 transition text-left group px-4 py-4"
+          >
+            <!-- Top row: name + time -->
+            <div class="flex items-start justify-between gap-3">
+              <p class="font-semibold group-hover:text-sky-400 transition leading-snug break-words min-w-0">{{ p.name }}</p>
+              <p class="font-mono font-bold tabular-nums text-sm shrink-0">{{ formatMs(p.totalMs) }}</p>
             </div>
-            <div class="text-right shrink-0 ml-4">
-              <p class="font-mono font-bold tabular-nums">{{ formatMs(p.totalMs) }}</p>
-              <p v-if="p.estimatedHours" class="text-xs text-muted-foreground mt-0.5">Est. {{ p.estimatedHours }}h</p>
-              <span class="text-xs text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full mt-1 inline-block">Completed</span>
+            <!-- Bottom row: meta -->
+            <div class="flex items-center justify-between gap-2 mt-2 flex-wrap">
+              <div class="min-w-0">
+                <p v-if="p.description" class="text-xs text-muted-foreground truncate">{{ p.description }}</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Completed {{ formatDate(p.updatedAt) }}</p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <p v-if="p.estimatedHours" class="text-xs text-muted-foreground">Est. {{ p.estimatedHours }}h</p>
+                <span class="text-xs text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">Completed</span>
+              </div>
             </div>
           </button>
         </div>
+
         <div v-if="loadingReport" class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <p class="text-sm text-muted-foreground animate-pulse">Generating report...</p>
+          <p class="text-sm text-muted-foreground animate-pulse">Generating report…</p>
         </div>
       </template>
 
+      <!-- ── Report detail ─────────────────────────────────────────────── -->
       <template v-else>
-        <section>
-          <div class="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <div class="flex items-center gap-2 mb-1">
+        <section class="space-y-8">
+
+          <!-- Summary card -->
+          <div class="rounded-lg border border-border bg-card px-4 py-4 sm:px-6">
+            <div class="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
+              <!-- Left: status + name + description -->
+              <div class="min-w-0">
                 <span class="text-xs text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">Completed</span>
+                <h2 class="text-lg sm:text-xl font-bold mt-2 leading-snug">{{ selectedProject.name }}</h2>
+                <p v-if="selectedProject.description" class="text-sm text-muted-foreground mt-1 leading-relaxed">{{ selectedProject.description }}</p>
               </div>
-              <h2 class="text-xl font-bold">{{ selectedProject.name }}</h2>
-              <p v-if="selectedProject.description" class="text-sm text-muted-foreground mt-1">{{ selectedProject.description }}</p>
-            </div>
-            <div class="text-right shrink-0">
-              <p class="text-2xl font-mono font-bold">{{ formatMs(selectedProject.totalMs) }}</p>
-              <p class="text-xs text-muted-foreground mt-0.5">Total Time</p>
-              <p v-if="selectedProject.estimatedHours" class="text-xs mt-1">
-                Est. {{ selectedProject.estimatedHours }}h &middot;
-                <span :class="utilizationColor(utilization(selectedProject.totalMs, selectedProject.estimatedHours)!)">{{ utilization(selectedProject.totalMs, selectedProject.estimatedHours) }}% utilization</span>
-              </p>
+              <!-- Right: time stats -->
+              <div class="shrink-0 sm:text-right">
+                <p class="text-2xl sm:text-3xl font-mono font-bold tabular-nums">{{ formatMs(selectedProject.totalMs) }}</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Total Time</p>
+                <p v-if="selectedProject.estimatedHours" class="text-xs mt-1">
+                  Est. {{ selectedProject.estimatedHours }}h &middot;
+                  <span :class="utilizationColor(utilization(selectedProject.totalMs, selectedProject.estimatedHours)!)">
+                    {{ utilization(selectedProject.totalMs, selectedProject.estimatedHours) }}% utilization
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
 
-          <div class="mb-8">
+          <!-- Milestone Breakdown -->
+          <div>
             <h3 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Milestone Breakdown</h3>
-            <div class="rounded-lg border border-border overflow-hidden">
-              <table class="w-full text-sm">
+            <div class="rounded-lg border border-border overflow-x-auto">
+              <table class="w-full text-sm min-w-[480px]">
                 <thead>
                   <tr class="border-b border-border/40 text-xs text-muted-foreground bg-white/[0.02]">
                     <th class="text-left px-4 py-2.5 font-medium">Milestone</th>
                     <th class="text-left px-4 py-2.5 font-medium">Task</th>
                     <th class="text-right px-4 py-2.5 font-medium">Est.</th>
                     <th class="text-right px-4 py-2.5 font-medium">Actual</th>
-                    <th class="text-right px-4 py-2.5 font-medium">Utilization</th>
+                    <th class="text-right px-4 py-2.5 font-medium">Util.</th>
                   </tr>
                 </thead>
                 <tbody>
                   <template v-for="m in selectedProject.milestones" :key="m.id">
+                    <!-- Milestone row -->
                     <tr class="border-b border-border/20 bg-white/[0.015]">
-                      <td class="px-4 py-2 font-semibold text-sm">{{ m.name }}</td>
+                      <td class="px-4 py-2 font-semibold text-sm" colspan="1">{{ m.name }}</td>
                       <td class="px-4 py-2 text-xs text-muted-foreground"></td>
                       <td class="px-4 py-2 text-right text-xs text-muted-foreground">{{ m.estimatedHours ? `${m.estimatedHours}h` : '—' }}</td>
                       <td class="px-4 py-2 text-right font-mono text-xs font-semibold">{{ formatMs(m.totalMs) }}</td>
@@ -206,9 +252,10 @@ function utilizationColor(pct: number): string {
                         <span v-else class="text-muted-foreground">—</span>
                       </td>
                     </tr>
+                    <!-- Sub-feature rows -->
                     <tr v-for="sf in m.subFeatures" :key="sf.id" class="border-b border-border/10 last:border-0">
-                      <td class="px-4 py-1.5 pl-8 text-xs text-muted-foreground"></td>
-                      <td class="px-4 py-1.5 text-xs">{{ sf.name }}</td>
+                      <td class="px-4 py-1.5 text-xs text-muted-foreground"></td>
+                      <td class="px-4 py-1.5 text-xs pl-6">{{ sf.name }}</td>
                       <td class="px-4 py-1.5 text-right text-xs text-muted-foreground">{{ sf.estimatedHours ? `${sf.estimatedHours}h` : '—' }}</td>
                       <td class="px-4 py-1.5 text-right font-mono text-xs">{{ formatMs(sf.totalMs) }}</td>
                       <td class="px-4 py-1.5 text-right text-xs">
@@ -217,6 +264,7 @@ function utilizationColor(pct: number): string {
                       </td>
                     </tr>
                   </template>
+                  <!-- Total row -->
                   <tr class="border-t border-border/40 bg-white/[0.02]">
                     <td class="px-4 py-2.5 font-bold text-sm" colspan="3">Total</td>
                     <td class="px-4 py-2.5 text-right font-mono font-bold text-sm">{{ formatMs(selectedProject.totalMs) }}</td>
@@ -230,9 +278,12 @@ function utilizationColor(pct: number): string {
             </div>
           </div>
 
+          <!-- Session Log -->
           <div v-if="selectedProject.logs.length > 0">
             <h3 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Session Log</h3>
-            <div class="rounded-lg border border-border overflow-hidden">
+
+            <!-- Desktop table -->
+            <div class="hidden sm:block rounded-lg border border-border overflow-hidden">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="border-b border-border/40 text-xs text-muted-foreground bg-white/[0.02]">
@@ -256,7 +307,27 @@ function utilizationColor(pct: number): string {
                 </tbody>
               </table>
             </div>
+
+            <!-- Mobile cards -->
+            <div class="sm:hidden space-y-2">
+              <div
+                v-for="(log, li) in selectedProject.logs"
+                :key="li"
+                class="rounded-lg border border-border bg-card px-4 py-3 space-y-1"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs text-muted-foreground">{{ formatDate(log.startedAt) }}</span>
+                  <span class="font-mono text-xs font-semibold">{{ formatMs(log.durationMs) }}</span>
+                </div>
+                <p class="text-sm font-medium leading-snug">{{ log.taskName }}</p>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs text-muted-foreground">{{ log.milestoneName }}</span>
+                  <span class="font-mono text-xs text-muted-foreground">{{ formatTime(log.startedAt) }} – {{ formatTime(log.stoppedAt) }}</span>
+                </div>
+              </div>
+            </div>
           </div>
+
         </section>
       </template>
     </main>
