@@ -93,25 +93,25 @@ watch(filterMilestone, () => { filterTask.value = '' })
 <template>
   <div class="min-h-screen bg-background text-foreground">
     <!-- Header -->
-    <header class="border-b border-border/50 px-6 py-4 flex items-center gap-4">
+    <header class="border-b border-border/50 px-4 sm:px-6 py-4 flex items-center gap-3 sticky top-0 z-10 bg-background/80 backdrop-blur">
       <button
         @click="router.back()"
-        class="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-sm"
+        class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition text-sm shrink-0"
       >
         <ArrowLeft class="w-4 h-4" />
-        Back
+        <span class="hidden sm:inline">Back</span>
       </button>
       <div class="flex-1 min-w-0">
         <p class="text-xs text-muted-foreground">Session History</p>
         <h1 class="font-semibold truncate">{{ project?.name ?? 'Project' }}</h1>
       </div>
-      <span v-if="logs.length" class="text-xs text-muted-foreground">
+      <span v-if="logs.length" class="hidden sm:block text-xs text-muted-foreground shrink-0">
         {{ filteredLogs.length }} session{{ filteredLogs.length !== 1 ? 's' : '' }} &middot; Total {{ formatDuration(totalMs) }}
       </span>
     </header>
 
     <!-- Content -->
-    <main class="max-w-5xl mx-auto px-4 py-8">
+    <main class="max-w-5xl mx-auto px-4 py-6 sm:py-8">
       <!-- Loading -->
       <div v-if="loading" class="text-center text-sm text-muted-foreground animate-pulse py-16">
         Loading history…
@@ -124,42 +124,53 @@ watch(filterMilestone, () => { filterTask.value = '' })
       </div>
 
       <template v-else>
-        <!-- Filters + records info -->
-        <div class="flex items-center gap-3 mb-4 flex-wrap">
-          <select
-            v-model="filterMilestone"
-            class="rounded-md border border-border bg-card text-sm px-3 py-1.5 text-foreground focus:outline-none focus:border-ring transition"
-          >
-            <option value="">All Milestones</option>
-            <option v-for="m in milestoneOptions" :key="m" :value="m">{{ m }}</option>
-          </select>
-          <select
-            v-model="filterTask"
-            class="rounded-md border border-border bg-card text-sm px-3 py-1.5 text-foreground focus:outline-none focus:border-ring transition"
-          >
-            <option value="">All Tasks</option>
-            <option v-for="t in taskOptions" :key="t" :value="t">{{ t }}</option>
-          </select>
-          <button
-            v-if="filterMilestone || filterTask"
-            @click="filterMilestone = ''; filterTask = ''"
-            class="text-xs text-muted-foreground hover:text-foreground transition px-2 py-1.5 rounded border border-border/50 hover:border-border"
-          >
-            Clear
-          </button>
-          <div class="ml-auto flex items-center gap-3">
-            <span class="text-xs text-muted-foreground">{{ recordsLabel }}</span>
+        <!-- Mobile summary (hidden on sm+) -->
+        <p v-if="logs.length" class="sm:hidden text-xs text-muted-foreground mb-3">
+          {{ filteredLogs.length }} session{{ filteredLogs.length !== 1 ? 's' : '' }} &middot; Total {{ formatDuration(totalMs) }}
+        </p>
+
+        <!-- Filters -->
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <!-- Selects: 2-col grid on mobile, inline on sm+ -->
+          <div class="grid grid-cols-2 gap-2 sm:contents">
             <select
-              v-model="pageSize"
-              class="rounded-md border border-border bg-card text-xs px-2 py-1.5 text-foreground focus:outline-none focus:border-ring transition"
+              v-model="filterMilestone"
+              class="rounded-md border border-border bg-card text-sm px-3 py-1.5 text-foreground focus:outline-none focus:border-ring transition"
             >
-              <option v-for="n in pageSizeOptions" :key="n" :value="n">{{ n }} / page</option>
+              <option value="">All Milestones</option>
+              <option v-for="m in milestoneOptions" :key="m" :value="m">{{ m }}</option>
             </select>
+            <select
+              v-model="filterTask"
+              class="rounded-md border border-border bg-card text-sm px-3 py-1.5 text-foreground focus:outline-none focus:border-ring transition"
+            >
+              <option value="">All Tasks</option>
+              <option v-for="t in taskOptions" :key="t" :value="t">{{ t }}</option>
+            </select>
+          </div>
+          <!-- Actions row -->
+          <div class="flex items-center gap-3 sm:contents">
+            <button
+              v-if="filterMilestone || filterTask"
+              @click="filterMilestone = ''; filterTask = ''"
+              class="text-xs text-muted-foreground hover:text-foreground transition px-2 py-1.5 rounded border border-border/50 hover:border-border"
+            >
+              Clear
+            </button>
+            <div class="ml-auto flex items-center gap-3">
+              <span class="text-xs text-muted-foreground">{{ recordsLabel }}</span>
+              <select
+                v-model="pageSize"
+                class="rounded-md border border-border bg-card text-xs px-2 py-1.5 text-foreground focus:outline-none focus:border-ring transition"
+              >
+                <option v-for="n in pageSizeOptions" :key="n" :value="n">{{ n }} / page</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="rounded-lg border border-border bg-card overflow-hidden">
+        <!-- Desktop Table (hidden on mobile) -->
+        <div class="hidden sm:block rounded-lg border border-border bg-card overflow-hidden">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-border/40 text-xs text-muted-foreground">
@@ -195,8 +206,34 @@ watch(filterMilestone, () => { filterTask.value = '' })
           </table>
         </div>
 
+        <!-- Mobile Cards (hidden on sm+) -->
+        <div class="sm:hidden space-y-2">
+          <div v-if="filteredLogs.length === 0" class="text-center py-8 text-sm text-muted-foreground">
+            No results match the current filters.
+          </div>
+          <div
+            v-for="log in pagedLogs"
+            :key="log.id"
+            class="rounded-lg border border-border bg-card px-4 py-3 space-y-1.5"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs text-muted-foreground">{{ formatDate(log.startedAt) }}</span>
+              <span class="font-mono text-xs font-semibold">{{ formatDuration(log.durationMs) }}</span>
+            </div>
+            <p class="text-sm font-medium leading-snug truncate">{{ log.subFeatureName }}</p>
+            <div class="flex items-center justify-between gap-2">
+              <span :class="log.milestoneName === 'Idle' ? 'text-amber-400/80 text-xs' : 'text-muted-foreground text-xs'">
+                {{ log.milestoneName }}
+              </span>
+              <span class="font-mono text-xs text-muted-foreground">
+                {{ formatTime(log.startedAt) }} – {{ formatTime(log.stoppedAt) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Pagination -->
-        <div v-if="totalPages > 1" class="flex items-center justify-center gap-1 mt-4">
+        <div v-if="totalPages > 1" class="flex items-center justify-center gap-1 mt-4 flex-wrap">
           <button
             @click="currentPage = 1"
             :disabled="currentPage === 1"
