@@ -11,12 +11,12 @@ const store = useProjectsStore()
 const loaded = ref(false)
 const confirmOpen = ref(false)
 const statusMenuOpen = ref(false)
-const statusBtnRef = ref<HTMLElement | null>(null)
-const menuStyle = ref<{ top: string; left: string }>(({ top: '0px', left: '0px' }))
+const menuStyle = ref<{ top: string; left: string }>({ top: '0px', left: '0px' })
 
-function openStatusMenu() {
-  if (statusBtnRef.value) {
-    const rect = statusBtnRef.value.getBoundingClientRect()
+function openStatusMenu(event: MouseEvent) {
+  const btn = event.currentTarget as HTMLElement
+  if (btn) {
+    const rect = btn.getBoundingClientRect()
     menuStyle.value = {
       top: `${rect.bottom + window.scrollY + 4}px`,
       left: `${rect.right + window.scrollX - 144}px`,
@@ -109,89 +109,138 @@ const statusConfig = {
     <!-- Project header row -->
     <div
       @click="toggle"
-      class="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors group"
+      class="px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors group"
     >
-      <!-- Left: chevron + title + badges -->
-      <div class="flex items-center gap-3 min-w-0">
+      <!-- Row 1: chevron + title + [desktop badges + actions] + time -->
+      <div class="flex items-center gap-2">
         <ChevronRight
           class="w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200"
           :class="{ 'rotate-90': isActive }"
         />
-        <span class="font-semibold truncate" :class="project.status === 'cancelled' ? 'line-through text-muted-foreground' : ''">{{ project.name }}</span>
-        <!-- Status badge -->
-        <span
-          v-if="project.status !== 'active'"
-          :class="['text-xs px-2 py-0.5 rounded-full shrink-0', project.status === 'completed' ? 'text-sky-400 bg-sky-500/10' : 'text-muted-foreground bg-white/5']"
-        >{{ project.status === 'completed' ? 'Completed' : 'Cancelled' }}</span>
-        <span
-          v-if="remainingMs !== null"
-          :class="['text-sm font-mono tabular-nums shrink-0', isOverBudget ? 'text-red-400' : 'text-muted-foreground/60']"
-        >({{ formatCountdown(remainingMs) }})</span>
-        <span
-          v-if="runningCount > 0"
-          class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full shrink-0"
-        >
-          {{ runningCount }} running
-        </span>
-      </div>
 
-      <!-- Right: action buttons + total time -->
-      <div class="flex items-center gap-3 shrink-0 ml-4">
-        <!-- Status menu -->
-        <div class="relative" @click.stop>
+        <!-- Title: wraps on mobile, truncates on desktop -->
+        <span
+          class="font-semibold flex-1 min-w-0 break-words sm:truncate"
+          :class="project.status === 'cancelled' ? 'line-through text-muted-foreground' : ''"
+        >{{ project.name }}</span>
+
+        <!-- Desktop-only: badges inline -->
+        <div class="hidden sm:flex items-center gap-2 shrink-0">
+          <span
+            v-if="project.status !== 'active'"
+            :class="['text-xs px-2 py-0.5 rounded-full', project.status === 'completed' ? 'text-sky-400 bg-sky-500/10' : 'text-muted-foreground bg-white/5']"
+          >{{ project.status === 'completed' ? 'Completed' : 'Cancelled' }}</span>
+          <span
+            v-if="remainingMs !== null"
+            :class="['text-sm font-mono tabular-nums', isOverBudget ? 'text-red-400' : 'text-muted-foreground/60']"
+          >({{ formatCountdown(remainingMs) }})</span>
+          <span
+            v-if="runningCount > 0"
+            class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full"
+          >{{ runningCount }} running</span>
+        </div>
+
+        <!-- Desktop-only: action icons (hover-reveal) -->
+        <div class="hidden sm:flex items-center gap-1 shrink-0" @click.stop>
           <button
-            ref="statusBtnRef"
-            @click="openStatusMenu"
+            @click="openStatusMenu($event)"
             class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-muted-foreground transition"
             title="Set status"
           >
             <CheckCircle class="w-4 h-4" />
           </button>
-        </div>
-        <Teleport to="body">
-          <div
-            v-if="statusMenuOpen"
-            class="fixed z-50 rounded-lg border border-border bg-card shadow-2xl min-w-36 py-1"
-            :style="menuStyle"
-            @click.stop
+          <button
+            @click.stop="router.push(`/projects/${project.id}/logs`)"
+            class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-muted-foreground transition"
+            title="View history"
           >
-            <button
-              @click="setStatus('active')"
-              :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'active' ? 'text-emerald-400' : 'text-foreground']"
-            >
-              <RotateCcw class="w-3.5 h-3.5" /> Active
-            </button>
-            <button
-              @click="setStatus('completed')"
-              :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'completed' ? 'text-sky-400' : 'text-foreground']"
-            >
-              <CheckCircle class="w-3.5 h-3.5" /> Completed
-            </button>
-            <button
-              @click="setStatus('cancelled')"
-              :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'cancelled' ? 'text-muted-foreground' : 'text-foreground']"
-            >
-              <XCircle class="w-3.5 h-3.5" /> Cancelled
-            </button>
-          </div>
-        </Teleport>
-        <button
-          @click.stop="router.push(`/projects/${project.id}/logs`)"
-          class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-muted-foreground transition"
-          title="View history"
-        >
-          <History class="w-4 h-4" />
-        </button>
-        <button
-          @click.stop="confirmOpen = true"
-          class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-destructive transition"
-          title="Delete project"
-        >
-          <Trash2 class="w-4 h-4" />
-        </button>
-        <span :class="['font-mono text-base tabular-nums', isOverBudget ? 'text-red-400' : runningCount > 0 ? 'text-emerald-400' : '']">{{ formatMs(liveMs) }}</span>
+            <History class="w-4 h-4" />
+          </button>
+          <button
+            @click.stop="confirmOpen = true"
+            class="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/10 text-destructive transition"
+            title="Delete project"
+          >
+            <Trash2 class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Time: always visible -->
+        <span :class="['font-mono text-base tabular-nums shrink-0', isOverBudget ? 'text-red-400' : runningCount > 0 ? 'text-emerald-400' : '']">{{ formatMs(liveMs) }}</span>
+      </div>
+
+      <!-- Row 2: mobile-only — badges + always-visible action icons -->
+      <div class="sm:hidden flex items-center justify-between mt-2 pl-6 gap-2" @click.stop>
+        <!-- Badges -->
+        <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+          <span
+            v-if="project.status !== 'active'"
+            :class="['text-xs px-2 py-0.5 rounded-full shrink-0', project.status === 'completed' ? 'text-sky-400 bg-sky-500/10' : 'text-muted-foreground bg-white/5']"
+          >{{ project.status === 'completed' ? 'Completed' : 'Cancelled' }}</span>
+          <span
+            v-if="remainingMs !== null"
+            :class="['text-xs font-mono tabular-nums shrink-0', isOverBudget ? 'text-red-400' : 'text-muted-foreground/60']"
+          >({{ formatCountdown(remainingMs) }})</span>
+          <span
+            v-if="runningCount > 0"
+            class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full shrink-0"
+          >{{ runningCount }} running</span>
+        </div>
+        <!-- Action icons: always visible on mobile -->
+        <div class="flex items-center gap-1 shrink-0">
+          <button
+            @click="openStatusMenu($event)"
+            class="p-2 rounded-md bg-white/5 hover:bg-white/10 text-muted-foreground transition"
+            title="Set status"
+          >
+            <CheckCircle class="w-4 h-4" />
+          </button>
+          <button
+            @click.stop="router.push(`/projects/${project.id}/logs`)"
+            class="p-2 rounded-md bg-white/5 hover:bg-white/10 text-muted-foreground transition"
+            title="View history"
+          >
+            <History class="w-4 h-4" />
+          </button>
+          <button
+            @click.stop="confirmOpen = true"
+            class="p-2 rounded-md bg-white/5 hover:bg-white/10 text-destructive/80 transition"
+            title="Delete project"
+          >
+            <Trash2 class="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Status dropdown (shared, teleported to body) -->
+    <Teleport to="body">
+      <div
+        v-if="statusMenuOpen"
+        class="fixed z-50 rounded-lg border border-border bg-card shadow-2xl min-w-36 py-1"
+        :style="menuStyle"
+        @click.stop
+      >
+        <button
+          @click="setStatus('active')"
+          :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'active' ? 'text-emerald-400' : 'text-foreground']"
+        >
+          <RotateCcw class="w-3.5 h-3.5" /> Active
+        </button>
+        <button
+          @click="setStatus('completed')"
+          :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'completed' ? 'text-sky-400' : 'text-foreground']"
+        >
+          <CheckCircle class="w-3.5 h-3.5" /> Completed
+        </button>
+        <button
+          @click="setStatus('cancelled')"
+          :class="['flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-white/5 transition', project.status === 'cancelled' ? 'text-muted-foreground' : 'text-foreground']"
+        >
+          <XCircle class="w-3.5 h-3.5" /> Cancelled
+        </button>
+      </div>
+    </Teleport>
 
     <!-- Expanded milestones -->
     <div v-if="isActive" class="border-t border-border/50">
