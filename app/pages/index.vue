@@ -44,28 +44,32 @@ const sortedProjects = computed(() =>
   <div class="min-h-screen bg-background">
     <!-- Header -->
     <header class="border-b border-border sticky top-0 z-10 bg-background/80 backdrop-blur">
-      <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div class="flex items-center gap-2 font-bold text-foreground">
-          <Timer class="w-5 h-5" />
-          TimeSnap
+      <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 font-bold text-foreground min-w-0">
+          <Timer class="w-5 h-5 shrink-0" />
+          <span class="truncate">TimeSnap</span>
+          <!-- "running" badge inline with brand on mobile -->
+          <span v-if="totalRunning > 0" class="sm:hidden text-xs text-emerald-400 font-normal shrink-0">
+            {{ totalRunning }} running
+          </span>
         </div>
-        <div class="flex items-center gap-3">
-          <span v-if="totalRunning > 0" class="text-xs text-emerald-400 font-medium">
+        <div class="flex items-center gap-2 shrink-0">
+          <span v-if="totalRunning > 0" class="hidden sm:block text-xs text-emerald-400 font-medium">
             {{ totalRunning }} running
           </span>
           <button
             @click="router.push('/report')"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm hover:bg-white/5 transition text-muted-foreground hover:text-foreground"
+            class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md border border-border text-sm hover:bg-white/5 transition text-muted-foreground hover:text-foreground"
           >
-            <FileText class="w-4 h-4" />
-            Report
+            <FileText class="w-4 h-4 shrink-0" />
+            <span class="hidden sm:inline">Report</span>
           </button>
           <button
             @click="showForm = !showForm"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm hover:opacity-90 transition"
+            class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm hover:opacity-90 transition"
           >
-            <Plus class="w-4 h-4" />
-            New Project
+            <Plus class="w-4 h-4 shrink-0" />
+            <span class="hidden sm:inline">New Project</span>
           </button>
         </div>
       </div>
