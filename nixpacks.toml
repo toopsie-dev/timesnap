@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_24", "python3", "gnumake", "gcc"]
+aptPkgs = ["python3", "make", "gcc", "g++"]
 
 [phases.install]
 cmds = ["npm ci --ignore-scripts"]
