@@ -29,7 +29,15 @@ export default defineNuxtConfig({
 
   nitro: {
     externals: {
+      // better-sqlite3 is a native addon — must NOT be bundled
       external: ['better-sqlite3'],
     },
+    // Ensure the native module is copied into the output
+    serverAssets: [],
+  },
+
+  runtimeConfig: {
+    // Server-only: exposed via process.env on the server
+    databasePath: process.env.DATABASE_PATH ?? '',
   },
 })

@@ -6,6 +6,9 @@ useHead({
     { name: 'description', content: 'Track time spent on tasks' },
     { name: 'color-scheme', content: 'dark' },
   ],
+  link: [
+    { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
+  ],
 })
 </script>
 

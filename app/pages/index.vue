@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Timer, Plus, FileText } from 'lucide-vue-next'
+import { Plus, FileText, Timer } from 'lucide-vue-next'
 import { useProjectsStore } from '~/stores/projects'
 import ProjectRow from '~/components/ProjectRow.vue'
 import CreateProjectForm from '~/components/CreateProjectForm.vue'
@@ -46,7 +46,7 @@ const sortedProjects = computed(() =>
     <header class="border-b border-border sticky top-0 z-10 bg-background/80 backdrop-blur">
       <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 font-bold text-foreground min-w-0">
-          <Timer class="w-5 h-5 shrink-0" />
+          <img src="/logo.svg" alt="TimeSnap" class="w-7 h-7 shrink-0" />
           <span class="truncate">TimeSnap</span>
           <!-- "running" badge inline with brand on mobile -->
           <span v-if="totalRunning > 0" class="sm:hidden text-xs text-emerald-400 font-normal shrink-0">

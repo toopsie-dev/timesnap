@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-label="TimeSnap logo">
+  <!-- Clock circle -->
+  <circle cx="32" cy="34" r="24" stroke="#6366f1" stroke-width="3" fill="#0f0f11"/>
+  <!-- Tick marks -->
+  <line x1="32" y1="13" x2="32" y2="17" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="32" y1="51" x2="32" y2="55" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="11" y1="34" x2="15" y2="34" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="49" y1="34" x2="53" y2="34" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Hour hand -->
+  <line x1="32" y1="34" x2="32" y2="23" stroke="#a5b4fc" stroke-width="3" stroke-linecap="round"/>
+  <!-- Minute hand -->
+  <line x1="32" y1="34" x2="42" y2="34" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="32" cy="34" r="2.5" fill="#6366f1"/>
+  <!-- Snap shutter arcs at top -->
+  <path d="M24 10 C24 6, 40 6, 40 10" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <circle cx="32" cy="8" r="2" fill="#10b981"/>
+</svg>

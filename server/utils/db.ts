@@ -7,8 +7,9 @@ let _db: Database.Database | null = null
 export function getDb() {
   if (_db) return _db
 
-  const dbPath = join(process.cwd(), 'data', 'timesnap.db')
-  mkdirSync(join(process.cwd(), 'data'), { recursive: true })
+  // Allow overriding the DB path via environment variable (e.g. for Railway volume mounts)
+  const dbPath = process.env.DATABASE_PATH ?? join(process.cwd(), 'data', 'timesnap.db')
+  mkdirSync(join(dbPath, '..'), { recursive: true })
 
   _db = new Database(dbPath)
   _db.pragma('journal_mode = WAL')
